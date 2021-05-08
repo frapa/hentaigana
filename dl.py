@@ -12,10 +12,13 @@ DATA_PATH = Path(__file__).parent / "data"
 OUTPUT_PATH = Path(__file__).parent / "models" / "model"
 OUTPUT_MAP = {
     0: "unclassified",
-    1: "つ",
-    2: "け",
-    3: "の",
-    4: "は",
+    1: "tsu TADA",
+    2: "ke NOZOMU",
+    3: "no DEKIRU",
+    4: "ha IPPAN",
+    5: "ke KUUKI",
+    6: "ni TANNEN",
+    7: "tsu TSUNAMI",
 }
 
 
