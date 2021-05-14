@@ -6,8 +6,8 @@ import os
 import numpy as np
 import tensorflow as tf
 
-INPUT_SIZE = 128
-BATCH_SIZE = 4
+INPUT_SIZE = (228, 128)
+BATCH_SIZE = 8
 DATA_PATH = Path(__file__).parent / "data"
 OUTPUT_PATH = Path(__file__).parent / "models" / "model"
 OUTPUT_MAP = {
@@ -61,10 +61,11 @@ def _extract_class(path: tf.Tensor) -> tf.Tensor:
 def _resize_and_crop(img: tf.Tensor) -> tf.Tensor:
     # h, w = tf.shape(img)
     # size = tf.cond(h > w, (128 / w * h, 128), (128, 128 / h * w))
-    size = (228, 128)
+    size = INPUT_SIZE
     resized = tf.image.resize(img, size, preserve_aspect_ratio=True)
-    crop = tf.image.crop_to_bounding_box(resized, 55, 0, 128, 128)
-    return crop
+    return resized
+    # crop = tf.image.crop_to_bounding_box(resized, 55, 0, 128, 128)
+    # return crop
 
 
 def _prepare_input(path: Union[Path, tf.Tensor]) -> tf.Tensor:
@@ -75,11 +76,17 @@ def _prepare_input(path: Union[Path, tf.Tensor]) -> tf.Tensor:
     return normalized
 
 
+def _augment(data):
+    img, label = data
+    return tf.image.random, label
+
+
 def _make_dataset() -> tf.data.Dataset:
     glob = str(DATA_PATH / "**/*.jpeg")
 
     return (
         tf.data.Dataset.list_files(glob)
+        .repeat(4)
         .shuffle(1000)
         .map(
             lambda path: (
@@ -110,7 +117,10 @@ def _make_callbacks() -> List[tf.keras.callbacks.Callback]:
 def _make_model() -> tf.keras.models.Model:
     return tf.keras.models.Sequential(
         [
-            tf.keras.layers.InputLayer((INPUT_SIZE, INPUT_SIZE, 1)),
+            tf.keras.layers.InputLayer((*INPUT_SIZE, 1)),
+            tf.keras.layers.experimental.preprocessing.RandomRotation(0.1),
+            tf.keras.layers.experimental.preprocessing.RandomTranslation(0.1, 0.1),
+            tf.keras.layers.experimental.preprocessing.RandomZoom(0.1),
             tf.keras.layers.Conv2D(
                 kernel_size=3,
                 strides=2,
